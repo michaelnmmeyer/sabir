@@ -39,9 +39,9 @@ Unix. You'll also need to link the compiled code to
 
 Two command-line tools are also included: a classification program, `sabir`, and
 a script for creating and evaluating classification models, `sabir-train`.
-Finally, a model file is included which recognizes English, French, German,
-Italian, and transliterated Sanskrit. It was trained on a few megabytes of
-Wikipedia dumps and on electronic texts from the [`Gretil
+Finally, a model file `model.sb` is included which recognizes English, French,
+German, Italian, and transliterated Sanskrit. It was trained on a few megabytes
+of Wikipedia dumps and on electronic texts from the [`Gretil
 project`](http://gretil.sub.uni-goettingen.de/).
 
 To compile and install all the above:
