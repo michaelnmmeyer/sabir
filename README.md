@@ -11,8 +11,8 @@ isn't possible with any language detection library out there.
 The approach used is similar to that of
 [`libcld2`](https://github.com/CLD2Owners/cld2), though simpler. Conceptually,
 we first preprocess the text to remove non-alphabetic code points. Each
-remaining character sequence is then padded on the left and the right with
-`0xff` bytes (which cannot appear in valid UTF-8 strings), and, if the resulting
+remaining letter sequence is then padded on the left and the right with `0xff`
+bytes (which cannot appear in valid UTF-8 strings), and, if the resulting
 sequence is long enough, byte quadgrams are extracted from it and fed to a
 multinomial Naive Bayes classifier. The string `Ô, café!`, for instance, is
 turned into the following quadgrams (in Python3 notation):
@@ -61,14 +61,14 @@ Full details are given in `sabir.h`.
 
 ## Training
 
-Provided you have enough data, it is possible (and desirable) to train a
-specialized model. The script `sabir-train` can be used for that purpose. You
-should first create one file per language, named after the language, and put all
-the created files in some directory. Then, to get an idea of the accuracy of
-your future classifier, call the script like so:
+Provided you have enough data, it is possible (and desirable, to achieve better
+accuracy) to train a specialized model. The script `sabir-train` can be used for
+that purpose. You should first create one file per language, named after the
+language. Then, to get an idea of the accuracy of your future classifier, invoke
+`sabir-train eval` at the command-line with the names of your files as argument.
+Here we use testing corpus files distributed together with the source code:
 
     $ sabir-train eval test/data/*
-    # ...
     macro-precision: 99.078
     macro-recall: 99.076
     macro-F1: 99.077
@@ -78,7 +78,7 @@ following:
 
     $ sabir-train dump test/data/* > my_model
 
-The resulting model can be used with the C API, or with the command-line
+The resulting model can then be used with the C API, or with the command-line
 classifier, e.g.:
 
     $ sabir --model=my_model README.md
