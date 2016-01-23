@@ -658,7 +658,7 @@ const char *const *sb_langs(struct sabir *, size_t *nr);
  */
 const char *sb_detect(struct sabir *, const void *text, size_t len);
 
-/* Lower-level classification interface, useful when the input text is read from
+/* Low-level classification interface, useful when the input text is read from
  * a stream. The procedure is as follows:
  *   1. Call sb_init() to (re)initialize the classifier state.
  *   2. Call sb_feed() one or more times with pieces of the text to classify.

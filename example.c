@@ -5,7 +5,7 @@
 #include <string.h>
 #include "sabir.h"
 
-int main(void)
+int main(int argc, char **argv)
 {
    /* Load our model. */
    struct sabir *sb;

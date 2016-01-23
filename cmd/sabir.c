@@ -56,7 +56,9 @@ static int process_many(struct sabir *sb, int nr, char **files)
    for (int i = 0; i < nr; i++) {
       const char *path = files[i];
       const char *lang = detect(sb, path);
-      if (lang)
+      if (!lang)
+         ret = EXIT_FAILURE;
+      else
          printf("%s:%s\n", path, lang);
    }
    return ret;
