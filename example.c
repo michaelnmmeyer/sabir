@@ -15,7 +15,7 @@ int main(int argc, char **argv)
       return EXIT_FAILURE;
    }
 
-   /* Reinitialize the classifier. */
+   /* Initialize the classifier. */
    sb_init(sb);
 
    /* Feed text chunks to the classifier. */

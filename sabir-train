@@ -31,6 +31,9 @@ PAD_CHUNK = True           # Positive, important
 
 assert NGRAM_SIZE <= DOCUMENT_LEN
 
+def utf8(x):
+   return x.encode("UTF-8")
+
 def normalize_chunk(chunk):
    if LOWERCASE_CHUNK:
       chunk = chunk.lower()
@@ -42,7 +45,7 @@ def normalize_chunk(chunk):
    if PAD_CHUNK:
       chunks = ("\0" + chunk + "\0" for chunk in chunks)
    if BYTE_NGRAMS:
-      chunks = (chunk.encode() for chunk in chunks)
+      chunks = (utf8(chunk) for chunk in chunks)
    return (chunk for chunk in chunks if len(chunk) >= NGRAM_SIZE)
 
 def split_ngrams(text):
@@ -142,14 +145,14 @@ def train_vector(corpora, fold_no=0, test_docs=None):
 
    cond_frq_vec = [0] * (len(cond_fd))
    for pair, freq in cond_fd.items():
-      cond_frq_vec[hash_feature(pair[0] + pair[1].encode()) % len(cond_frq_vec)] += freq
+      cond_frq_vec[hash_feature(pair[0] + utf8(pair[1])) % len(cond_frq_vec)] += freq
 
    def classify(document):
       probs = {lang: 0. for lang in langs}
       infos = [] # [(ngram, lang, hash, prob), ..]
       for ngram in document:
          for lang in langs:
-            h = hash_feature((ngram + lang.encode()))
+            h = hash_feature((ngram + utf8(lang)))
             cond_frq = cond_frq_vec[h % len(cond_frq_vec)]
             prob = math.log(cond_frq+1)
             probs[lang] += prob
@@ -226,7 +229,7 @@ def run_eval(corpora):
 def mkmodel(corpora, fp=sys.stdout):
    _, features, langs = train_vector(corpora)
    print("@ sabir 1", file=fp)
-   print("> %d %d %d" % (len(langs), sum(len(lang) for lang in langs), len(features)), file=fp)
+   print("> %d %d %d" % (len(langs), sum(len(utf8(lang)) for lang in langs), len(features)), file=fp)
    for lang in sorted(langs):
       print(lang, file=fp)
    for f in features:
