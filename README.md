@@ -69,7 +69,7 @@ your future classifier, call the script like so:
 
     $ sabir-train eval test/data/*
     # ...
-    macro-precision: 99.077
+    macro-precision: 99.078
     macro-recall: 99.076
     macro-F1: 99.077
 

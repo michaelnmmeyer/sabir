@@ -726,10 +726,9 @@ static size_t sb_pad(size_t n, size_t align)
    return n + ((n + align - 1) & ~(align - 1));
 }
 
-/* Prevent overflow issues. */
-#define SB_MAX_LABELS 600
+#define SB_MAX_LABELS 255
 #define SB_MAX_LABELS_LEN 2048
-#define SB_MAX_FEATURES 300000
+#define SB_MAX_FEATURES 300000   /* Prevent overflow issues. */
 
 int sb_load(struct sabir **sbp, const char *path)
 {
@@ -839,10 +838,9 @@ static uint32_t sb_hash_feature(const uint8_t s[static SB_NGRAM_SIZE], size_t po
    return h;
 }
 
-static uint32_t sb_hash_lang(uint32_t h, const char *lang)
+static uint32_t sb_hash_lang(uint32_t h, uint32_t lang)
 {
-   while (*lang)
-      h ^= (h << 5) + (uint8_t)*lang++ + (h >> 2);
+   h ^= (h << 5) + lang + (h >> 2);
    return h;
 }
 
@@ -879,7 +877,7 @@ static void sb_update_probs(struct sabir *sb,
    uint32_t h1 = sb_hash_feature(gram, pos);
 
    for (size_t i = 0; i < sb->num_labels; i++) {
-      uint32_t h2 = sb_hash_lang(h1, sb->labels[i]);
+      uint32_t h2 = sb_hash_lang(h1, i);
       double prob = sb->model[h2 % sb->num_features];
       sb->probs[i] += prob;
       if (sb_debug && sb_verbose)

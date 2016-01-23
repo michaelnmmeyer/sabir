@@ -91,10 +91,10 @@ def iter_corpus(path, lang, max_documents=MAX_DOCUMENTS):
 
 U32 = lambda n: c_uint32(n).value
 
-def hash_feature(s):
+def hash_feature(ngram, lang_no):
    # Must match the function used in the C source file!
    h = 1315423911
-   for c in s:
+   for c in ngram + bytes([lang_no]):
       n = U32(U32(h << 5) + c + U32(h >> 2))
       h = U32(h ^ n)
    return h
@@ -144,15 +144,15 @@ def train_vector(corpora, fold_no=0, test_docs=None):
    _, cond_fd, langs = train_dictionary(corpora, fold_no, test_docs)
 
    cond_frq_vec = [0] * (len(cond_fd))
-   for pair, freq in cond_fd.items():
-      cond_frq_vec[hash_feature(pair[0] + utf8(pair[1])) % len(cond_frq_vec)] += freq
+   for (ngram, lang), freq in cond_fd.items():
+      cond_frq_vec[hash_feature(ngram, langs.index(lang)) % len(cond_frq_vec)] += freq
 
    def classify(document):
       probs = {lang: 0. for lang in langs}
       infos = [] # [(ngram, lang, hash, prob), ..]
       for ngram in document:
          for lang in langs:
-            h = hash_feature((ngram + utf8(lang)))
+            h = hash_feature(ngram, langs.index(lang))
             cond_frq = cond_frq_vec[h % len(cond_frq_vec)]
             prob = math.log(cond_frq+1)
             probs[lang] += prob
@@ -167,13 +167,13 @@ def train_multi_vector(corpora, fold_no=0, test_docs=None):
    ngrams_per_lang = Counter(lang for (ngram, lang) in cond_fd)
    cond_frq_vecs = {lang: [0] * num_ngrams for lang, num_ngrams in ngrams_per_lang.items()}
    for (ngram, lang), freq in cond_fd.items():
-      cond_frq_vecs[lang][hash_feature(ngram) % ngrams_per_lang[lang]] += freq
+      cond_frq_vecs[lang][hash_feature(ngram, langs.index(lang)) % ngrams_per_lang[lang]] += freq
 
    def classify(document):
       probs = {lang: 0. for lang in langs}
       for ngram in document:
          for lang in langs:
-            cond_frq = cond_frq_vecs[lang][hash_feature(ngram) % ngrams_per_lang[lang]]
+            cond_frq = cond_frq_vecs[lang][hash_feature(ngram, langs.index(lang)) % ngrams_per_lang[lang]]
             probs[lang] += math.log(cond_frq+1)
       return find_best(probs), []
 
@@ -186,6 +186,8 @@ TRAINERS = {
 }
 
 def load_corpora(paths):
+   # We use a single byte for hashing language name into features.
+   assert len(paths) <= 0xff, "too much languages"
    # Count the number of documents per corpus so that we can truncate all
    # corpora to the same number of documents if one of them turns out to be too
    # small. Needed because we assume that priors are uniform.
