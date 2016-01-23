@@ -12,16 +12,16 @@ The approach used is similar to that of
 [`libcld2`](https://github.com/CLD2Owners/cld2), though simpler. Conceptually,
 we first preprocess the text to remove non-alphabetic code points. Each
 remaining character sequence is then padded on the left and the right with
-zeros, and, if the resulting sequence is long enough, byte quadgrams are
-extracted from it and fed to a multinomial Naive Bayes classifier. The string
-`Ô, café!`, for instance, is turned into the following quadgrams (in Python3
-notation):
+`0xff` bytes (which cannot appear in valid UTF-8 strings), and, if the resulting
+sequence is long enough, byte quadgrams are extracted from it and fed to a
+multinomial Naive Bayes classifier. The string `Ô, café!`, for instance, is
+turned into the following quadgrams (in Python3 notation):
 
-    b'\x00\xc3\x94\x00'
-    b'\x00caf'
+    b'\xff\xc3\x94\xff'
+    b'\xffcaf'
     b'caf\xc3'
     b'af\xc3\xa9'
-    b'f\xc3\xa9\x00'
+    b'f\xc3\xa9\xff'
 
 I've made two simplifying assumptions as concerns the Naive Bayes classifier:
 priors are treated as if they were uniform (which is of course likely not to be

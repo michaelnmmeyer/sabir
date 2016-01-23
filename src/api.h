@@ -5,7 +5,7 @@
  * https://github.com/JuliaLang/utf8proc
  */
 
-#define SB_VERSION "0.1"
+#define SB_VERSION "0.2"
 
 #include <stddef.h>
 

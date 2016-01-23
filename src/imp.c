@@ -18,6 +18,7 @@ static const bool sb_debug = false;
 bool sb_verbose;
 
 #define SB_NGRAM_SIZE 4
+#define SB_PAD_CHAR 0xff
 
 struct sabir {
    size_t num_labels;
@@ -47,7 +48,7 @@ const char *sb_strerror(int err)
 
 void sb_init(struct sabir *sb)
 {
-   sb->buf[0] = '\0';
+   sb->buf[0] = SB_PAD_CHAR;
    sb->buf_pos = 1;
    for (size_t i = 0; i < sb->num_labels; i++)
       sb->probs[i] = 0.;
@@ -237,10 +238,10 @@ static void sb_process(struct sabir *sb, const uint8_t *text, ssize_t len)
                sb_update_probs(sb, buf, pos);
          }
       } else {
-         buf[pos++ % SB_NGRAM_SIZE] = '\0';
+         buf[pos++ % SB_NGRAM_SIZE] = SB_PAD_CHAR;
          if (pos >= SB_NGRAM_SIZE)
             sb_update_probs(sb, buf, pos);
-         buf[0] = '\0';
+         buf[0] = SB_PAD_CHAR;
          pos = 1;
       }
    }   
@@ -259,7 +260,7 @@ void sb_feed(struct sabir *sb, const void *chunk, size_t len)
 const char *sb_finish(struct sabir *sb)
 {
    /* Handle the last ngram. */
-   sb->buf[sb->buf_pos++ % SB_NGRAM_SIZE] = '\0';
+   sb->buf[sb->buf_pos++ % SB_NGRAM_SIZE] = SB_PAD_CHAR;
    if (sb->buf_pos >= SB_NGRAM_SIZE)
       sb_update_probs(sb, sb->buf, sb->buf_pos);
    
