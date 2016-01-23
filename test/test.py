@@ -66,7 +66,7 @@ for n in range(1, NUM_TEST_DOCS + 1):
    make_doc(path)
    py_infos, py_lang = py_classify(path)
    c_infos, c_lang = c_classify(path)
-   if py_lang != c_lang:
+   if py_lang != c_lang or py_infos != c_infos:
       dump_ret("py_ret.tmp", py_lang, py_infos)
       dump_ret("c_ret.tmp", c_lang, c_infos)
       raise Exception("fail!")
