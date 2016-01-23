@@ -96,7 +96,7 @@ def hash_feature(s):
       h = U32(h ^ n)
    return h
 
-# When several label have the same probabilities, choose the smaller one,
+# When several labels have the same probabilities, choose the smaller one,
 # lexicographically speaking (must maintain stability for testing).
 def find_best(probs):
    best = max(probs, key=probs.get)
@@ -146,7 +146,7 @@ def train_vector(corpora, fold_no=0, test_docs=None):
 
    def classify(document):
       probs = {lang: 0. for lang in langs}
-      infos = [] # [(ngram, lang, hash, prob_so_far), ..]
+      infos = [] # [(ngram, lang, hash, prob), ..]
       for ngram in document:
          for lang in langs:
             h = hash_feature((ngram + lang.encode()))
@@ -219,10 +219,9 @@ def run_eval(corpora):
    precision = sum(mat["tp"] / (mat["tp"] + mat["fp"]) for mat in conf_mat.values()) / len(conf_mat)
    recall = sum(mat["tp"] / (mat["tp"] + mat["fn"]) for mat in conf_mat.values()) / len(conf_mat)
    F1 = 2 * precision * recall / (precision + recall)
-   print("trainer: %s" % TRAINER)
-   print("macro-precision: %.2f" % (precision * 100))
-   print("macro-recall: %.2f" % (recall * 100))
-   print("macro-F1: %.2f" % (F1 * 100))
+   print("macro-precision: %.3f" % (precision * 100))
+   print("macro-recall: %.3f" % (recall * 100))
+   print("macro-F1: %.3f" % (F1 * 100))
 
 def mkmodel(corpora, fp=sys.stdout):
    _, features, langs = train_vector(corpora)
