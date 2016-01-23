@@ -638,7 +638,7 @@ struct sabir;
 
 /* Loads a language detection model from a file.
  * On success, makes the provided structure pointer point to the loaded model,
- * and returns SB_OK. Otherwise, makes it point to NULL, and return an error
+ * and returns SB_OK. Otherwise, makes it point to NULL, and returns an error
  * code.
  */
 int sb_load(struct sabir **, const char *path);
@@ -654,7 +654,7 @@ void sb_dealloc(struct sabir *);
  */
 const char *const *sb_langs(struct sabir *, size_t *nr);
 
-/* Classifies a UTF-8 text chunk.
+/* Detects the language of a UTF-8 string.
  * The returned pointer points to this object's internals. It should then not
  * be accessed after the model is deallocated.
  * This always returns a value, whether or not the text to classify is written
@@ -662,8 +662,8 @@ const char *const *sb_langs(struct sabir *, size_t *nr);
  */
 const char *sb_detect(struct sabir *, const void *text, size_t len);
 
-/* Low-level classification interface, useful when the input text is read from
- * a stream. The calling procedure must be as follows:
+/* Low-level classification interface, to be used when the input text is read
+ * from a stream. The calling procedure must be as follows:
  *   1. Call sb_init() to (re)initialize the classifier state.
  *   2. Call sb_feed() one or more times with pieces of the text to classify.
  *      It is assumed that these chunks are contiguous. They need not start or
