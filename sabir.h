@@ -3,6 +3,7 @@
 
 /* This must be linked against the utf8proc library. Its source code is at:
  * https://github.com/JuliaLang/utf8proc
+ * On Linux, linking against the math library (-lm) is also necessary.
  */
 
 #define SB_VERSION "0.1"
@@ -41,7 +42,7 @@ void sb_dealloc(struct sabir *);
  */
 const char *const *sb_langs(struct sabir *, size_t *nr);
 
-/* Classifies a UTF-8 text chunk.
+/* Detects the language of a UTF-8 string.
  * The returned pointer points to this object's internals. It should then not
  * be accessed after the model is deallocated.
  * This always returns a value, whether or not the text to classify is written
