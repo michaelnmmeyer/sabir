@@ -1,0 +1,9 @@
+Usage: %s [options] [--] [file..]
+Recognize the language of a file or several files.
+
+Options:
+   -m, --model=<string>  path of the model to use [$PREFIX/sabir/model.sb]
+   -l, --list            display a list of the supported languages and exit
+   -v, --verbose         display debugging informations during processing
+   -h, --help            display this message and exit
+       --version         display the library version and exit
