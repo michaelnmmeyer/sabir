@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import os, sys, math, unicodedata
+import os, sys, math, unicodedata, math
 from collections import *
 from ctypes import *
 
@@ -10,7 +10,7 @@ from ctypes import *
 DOCUMENT_LEN = 30
 # Maximum number of documents to use for training, per language. We discard
 # remaining data if need be.
-MAX_DOCUMENTS = 50000
+MAX_DOCUMENTS = 100000
 NGRAM_SIZE = 4
 NUM_FOLDS = 10           # For cross-validation. We start counting at 1.
 
@@ -149,9 +149,10 @@ def train_dictionary(corpora, fold_no=0, test_docs=None):
 def train_vector(corpora, fold_no=0, test_docs=None):
    _, cond_fd, langs = train_dictionary(corpora, fold_no, test_docs)
 
-   cond_frq_vec = [0] * (len(cond_fd))
+   cond_frq_vec = [0] * (2 ** math.ceil(math.log(len(cond_fd),2)))
    for (ngram, lang), freq in cond_fd.items():
-      cond_frq_vec[hash_feature(ngram, langs.index(lang)) % len(cond_frq_vec)] += freq
+      idx = hash_feature(ngram, langs.index(lang)) % len(cond_frq_vec)
+      cond_frq_vec[idx] += freq
 
    def classify(document):
       probs = {lang: 0. for lang in langs}

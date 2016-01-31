@@ -21,6 +21,7 @@ static void inform(const char *msg, va_list ap)
       fprintf(stderr, " %s", my_errno ? strerror(my_errno) : "<unknown error>");
    
    putc('\n', stderr);
+   fflush(stderr);
 }
 
 noreturn void die(const char *msg, ...)

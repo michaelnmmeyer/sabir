@@ -618,7 +618,7 @@ UTF8PROC_DLLEXPORT utf8proc_uint8_t *utf8proc_NFKC(const utf8proc_uint8_t *str);
  * https://github.com/JuliaLang/utf8proc
  */
 
-#define SB_VERSION "0.2"
+#define SB_VERSION "0.3"
 
 #include <stddef.h>
 
@@ -650,7 +650,7 @@ void sb_dealloc(struct sabir *);
  * The returned array is lexicographically sorted and NULL-terminated. It points
  * to the model's internals, and should then not be used after the model is
  * deallocated. If "nr" is not NULL, fills it with the number of supported
- * languages. 
+ * languages.
  */
 const char *const *sb_langs(struct sabir *, size_t *nr);
 
@@ -690,7 +690,7 @@ bool sb_verbose;
 
 struct sabir {
    size_t num_labels;
-   size_t num_features;
+   size_t table_mask;
    const char *const *labels;
    double *probs;
    uint8_t buf[SB_NGRAM_SIZE];
@@ -727,9 +727,14 @@ static size_t sb_pad(size_t n, size_t align)
    return n + ((n + align - 1) & ~(align - 1));
 }
 
+static bool sb_is_pow2(size_t n)
+{
+   return n && (n & (n - 1)) == 0;
+}
+
 #define SB_MAX_LABELS 255
 #define SB_MAX_LABELS_LEN 2048
-#define SB_MAX_FEATURES 300000   /* Prevent overflow issues. */
+#define SB_MAX_FEATURES 400000   /* Prevent overflow issues. */
 
 int sb_load(struct sabir **sbp, const char *path)
 {
@@ -754,7 +759,7 @@ int sb_load(struct sabir **sbp, const char *path)
       goto bad_model;
    if (labels_len == 0 || labels_len > SB_MAX_LABELS_LEN)
       goto bad_model;
-   if (num_features == 0 || num_features > SB_MAX_FEATURES)
+   if (num_features == 0 || num_features > SB_MAX_FEATURES || !sb_is_pow2(num_features))
       goto bad_model;
 
    /* Compute memory offsets. */
@@ -770,7 +775,7 @@ int sb_load(struct sabir **sbp, const char *path)
       return SB_ENOMEM;
    }
    sb->num_labels = num_labels;
-   sb->num_features = num_features;
+   sb->table_mask = num_features - 1;
    sb->labels = (void *)((char *)sb + ptrs_off);
    sb->probs = (void *)((char *)sb + probs_off);
    sb_init(sb);
@@ -879,7 +884,7 @@ static void sb_update_probs(struct sabir *sb,
 
    for (size_t i = 0; i < sb->num_labels; i++) {
       uint32_t h2 = sb_hash_lang(h1, i);
-      double prob = sb->model[h2 % sb->num_features];
+      double prob = sb->model[h2 & sb->table_mask];
       sb->probs[i] += prob;
       if (sb_debug && sb_verbose)
          sb_report(gram, pos, sb->labels[i], h2, prob);
@@ -912,7 +917,7 @@ static void sb_process(struct sabir *sb, const uint8_t *text, ssize_t len)
          buf[0] = SB_PAD_CHAR;
          pos = 1;
       }
-   }   
+   }
    sb->buf_pos = pos;
 }
 
@@ -931,7 +936,7 @@ const char *sb_finish(struct sabir *sb)
    sb->buf[sb->buf_pos++ % SB_NGRAM_SIZE] = SB_PAD_CHAR;
    if (sb->buf_pos >= SB_NGRAM_SIZE)
       sb_update_probs(sb, sb->buf, sb->buf_pos);
-   
+
    /* Just in case the caller attempts to call this function several times. */
    sb->buf_pos = 0;
 

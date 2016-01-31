@@ -5,7 +5,7 @@
  * https://github.com/JuliaLang/utf8proc
  */
 
-#define SB_VERSION "0.2"
+#define SB_VERSION "0.3"
 
 #include <stddef.h>
 
@@ -37,7 +37,7 @@ void sb_dealloc(struct sabir *);
  * The returned array is lexicographically sorted and NULL-terminated. It points
  * to the model's internals, and should then not be used after the model is
  * deallocated. If "nr" is not NULL, fills it with the number of supported
- * languages. 
+ * languages.
  */
 const char *const *sb_langs(struct sabir *, size_t *nr);
 
