@@ -223,11 +223,15 @@ static void sb_update_probs(struct sabir *sb,
    }
 }
 
+static void sb_put_byte(struct sabir *sb, int c)
+{
+   sb->buf[sb->buf_pos++ % SB_NGRAM_SIZE] = c;
+   if (sb->buf_pos >= SB_NGRAM_SIZE)
+      sb_update_probs(sb, sb->buf, sb->buf_pos);
+}
+
 static void sb_process(struct sabir *sb, const uint8_t *text, ssize_t len)
 {
-   uint8_t *buf = sb->buf;
-   size_t pos = sb->buf_pos;
-
    ssize_t clen;
    for (ssize_t i = 0; i < len; i += clen) {
       int32_t c;
@@ -237,20 +241,14 @@ static void sb_process(struct sabir *sb, const uint8_t *text, ssize_t len)
          continue;
       }
       if (sb_is_letter(c)) {
-         for (ssize_t j = 0; j < clen; j++) {
-            buf[pos++ % SB_NGRAM_SIZE] = text[i + j];
-            if (pos >= SB_NGRAM_SIZE)
-               sb_update_probs(sb, buf, pos);
-         }
+         for (ssize_t j = 0; j < clen; j++)
+            sb_put_byte(sb, text[i + j]);
       } else {
-         buf[pos++ % SB_NGRAM_SIZE] = SB_PAD_CHAR;
-         if (pos >= SB_NGRAM_SIZE)
-            sb_update_probs(sb, buf, pos);
-         buf[0] = SB_PAD_CHAR;
-         pos = 1;
+         sb_put_byte(sb, SB_PAD_CHAR);
+         sb->buf[0] = SB_PAD_CHAR;
+         sb->buf_pos = 1;
       }
    }
-   sb->buf_pos = pos;
 }
 
 #ifndef SSIZE_MAX
@@ -265,9 +263,7 @@ void sb_feed(struct sabir *sb, const void *chunk, size_t len)
 const char *sb_finish(struct sabir *sb)
 {
    /* Handle the last ngram. */
-   sb->buf[sb->buf_pos++ % SB_NGRAM_SIZE] = SB_PAD_CHAR;
-   if (sb->buf_pos >= SB_NGRAM_SIZE)
-      sb_update_probs(sb, sb->buf, sb->buf_pos);
+   sb_put_byte(sb, SB_PAD_CHAR);
 
    /* Just in case the caller attempts to call this function several times. */
    sb->buf_pos = 0;
