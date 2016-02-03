@@ -1,9 +1,9 @@
-Usage: %s [options] [--] [file..]
-Recognize the language of a file or several files.
+Usage: %s [-m <model>] [--] [<file>..]
+Detect the language of text files.
 
 Options:
-   -m, --model=<string>  path of the model to use [$PREFIX/sabir/model.sb]
-   -l, --list            display a list of the supported languages and exit
+   -m, --model=<string>  path of the model to use [$PREFIX/share/sabir/model.sb]
+   -l, --list            display a list of the languages supported by a model
    -v, --verbose         display debugging informations during processing
-   -h, --help            display this message and exit
-       --version         display the library version and exit
+   -h, --help            display this message
+       --version         display the library version

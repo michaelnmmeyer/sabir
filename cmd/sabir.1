@@ -1,0 +1,42 @@
+.TH sabir 1
+
+.SH NAME
+sabir - detect the language of text files
+
+.SH SYNOPSIS
+.B sabir
+.RB [-m\ <model>]\ [--]\ [<file>..]
+
+.SH DESCRIPTION
+.SS Overview
+Sabir is a natural language detector. It performs a statistical analysis of the
+files it is given as argument and outputs the most probable language they're
+written in. If no file name is given, the standard input is read.
+
+.SS Options
+
+.TP
+.B \-m, \-\-model=<string> [PREFIX/share/sabir/model.sb]
+Path of the model to use for classification. The value of PREFIX is defined
+during installation, and defaults to /usr/local. Model files can be created with
+the
+.B sabir-train
+command.
+
+.TP
+.B \-l, \-\-list
+Display a list of the languages that can be recognized by a model.
+
+.TP
+.B \-v, \-\-verbose
+Output debugging informations during processing.
+
+.TP
+.B \-h, \-\-help
+Display a short help message.
+.TP
+.B \-\-version
+Display the library version.
+
+.SH COPYRIGHT
+Copyright (c) 2016 Michaël Meyer

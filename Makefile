@@ -23,14 +23,16 @@ check: sabir
 
 install: sabir sabir-train model.sb
 	install -spm 0755 sabir $(PREFIX)/bin/sabir
+	install -pm 0644 cmd/sabir.1 $(PREFIX)/share/man/man1
 	install -pm 0755 sabir-train $(PREFIX)/bin/sabir-train
-	install -pDm 0755 model.sb $(PREFIX)/share/sabir/model.sb
+	install -pDm 0644 model.sb $(PREFIX)/share/sabir/model.sb
 
 uninstall:
 	rm -f $(PREFIX)/bin/sabir
+	rm -f $(PREFIX)/share/man/man1/sabir.1
 	rm -f $(PREFIX)/bin/sabir-train
 	rm -f $(PREFIX)/share/sabir/model.sb
-	rmdir $(PREFIX)/share/sabir
+	rmdir $(PREFIX)/share/sabir 2> /dev/null || true
 
 .PHONY: all clean check install uninstall
 
