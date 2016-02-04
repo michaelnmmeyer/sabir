@@ -25,8 +25,10 @@ struct sabir {
    size_t table_mask;
    const char *const *labels;
    double *probs;
-   uint8_t buf[SB_NGRAM_SIZE];
-   size_t buf_pos;
+   uint8_t buf[SB_NGRAM_SIZE];      /* Current quadgram (rolling buffer). */
+   size_t buf_pos;                  /* Current write pos in this buffer. */
+   uint8_t pending[SB_NGRAM_SIZE];
+   ssize_t pending_have;
    double model[];
 };
 
@@ -52,6 +54,7 @@ void sb_init(struct sabir *sb)
    sb->buf_pos = 1;
    for (size_t i = 0; i < sb->num_labels; i++)
       sb->probs[i] = 0.;
+   sb->pending_have = 0;
 }
 
 static size_t sb_pad(size_t n, size_t align)
@@ -230,13 +233,59 @@ static void sb_put_byte(struct sabir *sb, int c)
       sb_update_probs(sb, sb->buf, sb->buf_pos);
 }
 
+static ssize_t sb_complete(struct sabir *sb, const uint8_t *text, ssize_t len)
+{
+   ssize_t clen = utf8proc_utf8class[*sb->pending];
+   const ssize_t need = clen - sb->pending_have;
+
+   if (need > len) {
+      for (ssize_t j = 0; j < len; j++)
+         sb->pending[sb->pending_have++] = text[j];
+      return len;
+   }
+
+   for (ssize_t j = 0; j < need; j++)
+      sb->pending[sb->pending_have++] = text[j];
+   sb->pending_have = 0;
+
+   int32_t c;
+   clen = utf8proc_iterate(sb->pending, clen, &c);
+   if (clen <= 0)
+      return 0;
+   
+   if (sb_is_letter(c)) {
+      for (ssize_t j = 0; j < clen; j++)
+         sb_put_byte(sb, sb->pending[j]);
+   } else {
+      sb_put_byte(sb, SB_PAD_CHAR);
+      sb->buf[0] = SB_PAD_CHAR;
+      sb->buf_pos = 1;      
+   }
+   return need;
+}
+
 static void sb_process(struct sabir *sb, const uint8_t *text, ssize_t len)
 {
+   /* Complete the last truncated UTF-8 sequence if applicable. */
+   ssize_t i = sb->pending_have ? sb_complete(sb, text, len) : 0;
    ssize_t clen;
-   for (ssize_t i = 0; i < len; i += clen) {
+
+   for ( ; i < len; i += clen) {
       int32_t c;
       clen = utf8proc_iterate(&text[i], len - i, &c);
       if (clen <= 0) {
+         /* The last UTF-8 sequence of a chunk might be truncated. We cannot
+          * feed byte ngrams to the classifier until we know the category of
+          * the code point to be decoded, so save what we have now and see later
+          * if we can complete the sequence.
+          */
+         clen = utf8proc_utf8class[text[i]];
+         if (i + clen > len) {
+            sb->pending_have = len - i;
+            for (ssize_t j = 0; j < sb->pending_have; j++)
+               sb->pending[j] = text[i + j];
+            break;
+         }
          clen = 1;
          continue;
       }

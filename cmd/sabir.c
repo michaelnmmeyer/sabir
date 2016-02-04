@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include "../sabir.h"
 #include "cmd.h"
 
@@ -14,7 +15,7 @@ noreturn static void version(void)
    exit(EXIT_SUCCESS);
 }
 
-static const char *detect(struct sabir *sb, const char *path)
+static const char *detect(struct sabir *sb, const char *path, size_t buf_size)
 {
    FILE *fp = path ? fopen(path, "r") : stdin;
    if (!fp) {
@@ -25,9 +26,9 @@ static const char *detect(struct sabir *sb, const char *path)
    char buf[BUFSIZ];
    size_t size;
    sb_init(sb);
-   while ((size = fread(buf, 1, sizeof buf, fp)))
+   while ((size = fread(buf, 1, buf_size, fp)))
       sb_feed(sb, buf, size);
-   
+
    const char *lang = NULL;
    if (ferror(fp))
       complain("cannot read '%s':", path);
@@ -39,9 +40,9 @@ static const char *detect(struct sabir *sb, const char *path)
    return lang;
 }
 
-static int process_one(struct sabir *sb, const char *path)
+static int process_one(struct sabir *sb, const char *path, size_t buf_size)
 {
-   const char *lang = detect(sb, path);
+   const char *lang = detect(sb, path, buf_size);
    if (!lang)
       return EXIT_FAILURE;
 
@@ -49,13 +50,13 @@ static int process_one(struct sabir *sb, const char *path)
    return EXIT_SUCCESS;
 }
 
-static int process_many(struct sabir *sb, int nr, char **files)
+static int process_many(struct sabir *sb, int nr, char **files, size_t buf_size)
 {
    int ret = EXIT_SUCCESS;
 
    for (int i = 0; i < nr; i++) {
       const char *path = files[i];
-      const char *lang = detect(sb, path);
+      const char *lang = detect(sb, path, buf_size);
       if (!lang)
          ret = EXIT_FAILURE;
       else
@@ -71,6 +72,17 @@ static int display_langs(struct sabir *sb)
       puts(*langs++);
    
    return EXIT_SUCCESS;
+}
+
+/* We do that for testing. */
+static size_t get_buf_size(void)
+{
+   const char *how_much = getenv("SB_BUF_SIZE");
+   uintmax_t val;
+
+   if (how_much && sscanf(how_much, "%ju", &val) == 1 && val > 0 && val < BUFSIZ)
+      return val;
+   return BUFSIZ;
 }
 
 int main(int argc, char **argv)
@@ -99,9 +111,9 @@ int main(int argc, char **argv)
    if (list)
       ret = display_langs(sb);
    else if (argc <= 1)
-      ret = process_one(sb, *argv);
+      ret = process_one(sb, *argv, get_buf_size());
    else
-      ret = process_many(sb, argc, argv);
+      ret = process_many(sb, argc, argv, get_buf_size());
    
    sb_dealloc(sb);
    return ret;
