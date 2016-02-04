@@ -2,8 +2,8 @@ PREFIX = /usr/local
 
 CFLAGS = -DSB_PREFIX='"$(PREFIX)"' -DSB_DEBUG
 CFLAGS += -std=c11 -g -Wall -Werror -pedantic
-#CFLAGS += -O2 -DNDEBUG -march=native -mtune=native -fomit-frame-pointer -s
-#CFLAGS += -flto -fdata-sections -ffunction-sections -Wl,--gc-sections
+CFLAGS += -O2 -DNDEBUG -march=native -mtune=native -fomit-frame-pointer -s
+CFLAGS += -flto -fdata-sections -ffunction-sections -Wl,--gc-sections
 LDLIBS = -lm
 
 AMALG = sabir.h sabir.c
