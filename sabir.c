@@ -727,7 +727,7 @@ void sb_init(struct sabir *sb)
 
 static size_t sb_pad(size_t n, size_t align)
 {
-   return n + ((n + align - 1) & ~(align - 1));
+   return (n + align - 1) & ~(align - 1);
 }
 
 static bool sb_is_pow2(size_t n)
