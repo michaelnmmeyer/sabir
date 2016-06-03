@@ -34,7 +34,7 @@ There is a concrete usage example in `example.c`. Compile this file with `make`,
 and use the output binary like so:
 
     $ ./example < README.md
-   en
+    en
 
 Full details are given in `sabir.h`.
 
